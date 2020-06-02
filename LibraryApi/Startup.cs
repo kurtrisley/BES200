@@ -15,6 +15,9 @@ using Microsoft.Extensions.Configuration;
 using Microsoft.Extensions.DependencyInjection;
 using Microsoft.Extensions.Hosting;
 using Microsoft.Extensions.Logging;
+using AutoMapper;
+using LibraryApi.Profiles;
+using System.Text.Json.Serialization;
 
 namespace LibraryApi
 {
@@ -34,6 +37,7 @@ namespace LibraryApi
                 .AddJsonOptions(options =>
                 {
                     options.JsonSerializerOptions.IgnoreNullValues = true;
+                    options.JsonSerializerOptions.Converters.Add(new JsonStringEnumConverter());
                 });
 
             services.AddTransient<ISystemTime, SystemTime>(); // Create a new instance of this for each needed injection
@@ -42,6 +46,17 @@ namespace LibraryApi
 
                 options.UseSqlServer(Configuration.GetConnectionString("LibraryDatabase"))
             ) ;
+
+            //services.AddAutoMapper(typeof(Startup));
+
+            var mappingConfig = new MapperConfiguration(mc =>
+            {
+                mc.AddProfile(new BooksProfile());
+            });
+
+            IMapper mapper = mappingConfig.CreateMapper();
+            services.AddSingleton<IMapper>(mapper);
+            services.AddSingleton<MapperConfiguration>(mappingConfig);
 
             services.AddScoped<IMapBooks, EfBooksMapper>();
             services.AddSwaggerGen(c =>
@@ -52,8 +67,8 @@ namespace LibraryApi
                     Version = "1.0",
                     Contact = new Microsoft.OpenApi.Models.OpenApiContact
                     {
-                        Name = "Jeff Gonzalez",
-                        Email = "jeff@hypetheory.com"
+                        Name = "Kurt Risley",
+                        Email = "kurt@davidrisley.com"
                     },
                     Description = "An Api for the BES 100 Class"
                 });
@@ -61,7 +76,14 @@ namespace LibraryApi
                 var xmlPath = Path.Combine(AppContext.BaseDirectory, xmlFile);
                 c.IncludeXmlComments(xmlPath);
 
-            }); 
+            });
+
+            services.AddDistributedRedisCache(options =>
+            {
+                options.Configuration = Configuration.GetConnectionString("Redis");
+            });
+
+            services.AddTransient<ICacheTheCatalog, CatalogService>();
         }
 
         // This method gets called by the runtime. Use this method to configure the HTTP request pipeline.
