@@ -8,7 +8,7 @@ namespace LibraryApi.Domain
 {
     public class LibraryDataContext : DbContext
     {
-        public LibraryDataContext(DbContextOptions<LibraryDataContext> ctx): base(ctx) { }
+        public LibraryDataContext(DbContextOptions<LibraryDataContext> ctx) : base(ctx) { }
 
         public virtual DbSet<Book> Books { get; set; }
         public virtual DbSet<Reservation> Reservations { get; set; }
@@ -17,6 +17,7 @@ namespace LibraryApi.Domain
         {
             modelBuilder.Entity<Book>().Property(b => b.Title).HasMaxLength(200);
             modelBuilder.Entity<Book>().Property(b => b.Author).HasMaxLength(200);
+
             // etc. etc.
         }
     }
@@ -26,7 +27,7 @@ namespace LibraryApi.Domain
     {
         public int Id { get; set; }
         public string For { get; set; }
-        public string Books { get; set; }
+        public string Books { get; set; }// "1,3,8,16"
         public ReservationStatus Status { get; set; }
         public DateTime ReservationCreated { get; set; }
     }
